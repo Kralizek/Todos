@@ -1,0 +1,23 @@
+@Todos_HostAddress = http://localhost:5182
+
+GET {{Todos_HostAddress}}/todos/
+Accept: application/json
+
+###
+POST {{Todos_HostAddress}}/todos/
+Content-Type: application/json
+
+{"Title": "A test item", "Description": "Something to do", "Priority": 4}
+
+###
+GET {{Todos_HostAddress}}/todos/31e419ff-2eef-4da0-ac3b-4631b707459c
+Accept: application/json
+
+###
+PUT {{Todos_HostAddress}}/todos/31e419ff-2eef-4da0-ac3b-4631b707459c
+Content-Type: application/json
+
+{"Title": "A test item", "Description": "Something to do really!", "Priority": 3, "Id": "31e419ff-2eef-4da0-ac3b-4631b707459c"}
+
+###
+DELETE {{Todos_HostAddress}}/todos/31e419ff-2eef-4da0-ac3b-4631b707459c

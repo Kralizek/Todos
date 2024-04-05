@@ -1,18 +1,10 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-
-using Microsoft.AspNetCore.Http.HttpResults;
-
-using SQLitePCL;
-
-using Todos.Model;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Todos.Todo;
 
 public static class Endpoints
 {
+    [ExcludeFromCodeCoverage]
     public static IEndpointRouteBuilder AddTodoEndpoints(this IEndpointRouteBuilder builder)
     {
         var group = builder.MapGroup("todos")
@@ -37,27 +29,23 @@ public static class Endpoints
         return builder;
     }
 
-    public static IAsyncEnumerable<TodoItem> List(TodoDbContext db) => db.Todos.AsAsyncEnumerable();
+    public static IAsyncEnumerable<TodoItem> List(ITodoRepository repository) => repository.ListAsync();
 
-    public static async Task<Results<Created<TodoItem>, BadRequest>> Create(TodoItem item, TodoDbContext db, CancellationToken cancellationToken)
+    public static async Task<Results<Created<TodoItem>, BadRequest>> Create(TodoItem item, ITodoRepository repository, CancellationToken cancellationToken)
     {
         if (item.Id != Guid.Empty)
         {
             return BadRequest();
         }
 
-        item.Id = Guid.NewGuid();
+        var newItem = await repository.AddAsync(item, cancellationToken);
 
-        db.Todos.Add(item);
-
-        await db.SaveChangesAsync(cancellationToken);
-
-        return Created($"/todos/{item.Id}", item);
+        return Created($"/todos/{newItem.Id}", newItem);
     }
 
-    public static async Task<Results<Ok<TodoItem>, NotFound>> Get(Guid id, TodoDbContext db, CancellationToken cancellationToken)
+    public static async Task<Results<Ok<TodoItem>, NotFound>> Get(Guid id, ITodoRepository repository, CancellationToken cancellationToken)
     {
-        var item = await db.Todos.FindAsync([id], cancellationToken);
+        var item = await repository.GetAsync(id, cancellationToken);
 
         if (item is null)
         {
@@ -67,36 +55,36 @@ public static class Endpoints
         return Ok(item);
     }
 
-    public static async Task<Results<Ok<TodoItem>, BadRequest, NotFound>> Save(Guid id, TodoItem item, TodoDbContext db, CancellationToken cancellationToken)
+    public static async Task<Results<Ok<TodoItem>, BadRequest, NotFound>> Save(Guid id, TodoItem item, ITodoRepository repository, CancellationToken cancellationToken)
     {
-        if (item.Id != id)
+        if (item.Id != Guid.Empty && item.Id != id)
         {
             return BadRequest();
         }
 
-        var updated = await db.Todos.Where(t => t.Id == id)
-            .ExecuteUpdateAsync(updates => updates
-                    .SetProperty(t => t.IsComplete, item.IsComplete)
-                    .SetProperty(t => t.Priority, item.Priority)
-                    .SetProperty(t => t.Title, item.Title)
-                    .SetProperty(t => t.Description, item.Description),
-                cancellationToken);
-
-        return updated switch 
+        try
         {
-            0 => NotFound(),
-            _ => Ok(item)
-        };
+            await repository.UpdateAsync(item, cancellationToken);
+        }
+        catch (ArgumentException)
+        {
+            return NotFound();
+        }
+
+        return Ok(item);
     }
 
-    public static async Task<Results<Ok, NotFound>> Delete(Guid id, TodoDbContext db, CancellationToken cancellationToken)
+    public static async Task<Results<Ok, NotFound>> Delete(Guid id, ITodoRepository repository, CancellationToken cancellationToken)
     {
-        var deleted = await db.Todos.Where(t => t.Id == id).ExecuteDeleteAsync(cancellationToken);
-
-        return deleted switch 
+        try
         {
-            0 => NotFound(),
-            _ => Ok()
-        };
+            await repository.DeleteAsync(id, cancellationToken);
+        }
+        catch (ArgumentException)
+        {
+            return NotFound();
+        }
+
+        return Ok();
     }
 }

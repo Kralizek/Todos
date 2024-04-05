@@ -1,10 +1,10 @@
 using Microsoft.EntityFrameworkCore;
 
-using Todos.Model;
+using Todos.Todo;
 
 namespace Todos;
 
-public class TodoDbContext(DbContextOptions<TodoDbContext> options) : DbContext(options)
+public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(options)
 {
     public DbSet<TodoItem> Todos => Set<TodoItem>();
 

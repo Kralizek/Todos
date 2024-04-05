@@ -10,14 +10,14 @@ Content-Type: application/json
 {"Title": "A test item", "Description": "Something to do", "Priority": 4}
 
 ###
-GET {{Todos_HostAddress}}/todos/31e419ff-2eef-4da0-ac3b-4631b707459c
+GET {{Todos_HostAddress}}/todos/b0b41db7-82b8-44cd-9cc9-f3a2ffb4b9c6
 Accept: application/json
 
 ###
-PUT {{Todos_HostAddress}}/todos/31e419ff-2eef-4da0-ac3b-4631b707459c
+PUT {{Todos_HostAddress}}/todos/b0b41db7-82b8-44cd-9cc9-f3a2ffb4b9c6
 Content-Type: application/json
 
-{"Title": "A test item", "Description": "Something to do really!", "Priority": 3, "Id": "31e419ff-2eef-4da0-ac3b-4631b707459c"}
+{"Title": "A test item", "Description": "Something to do really!", "Priority": 3, "Id": "b0b41db7-82b8-44cd-9cc9-f3a2ffb4b9c6"}
 
 ###
-DELETE {{Todos_HostAddress}}/todos/31e419ff-2eef-4da0-ac3b-4631b707459c
+DELETE {{Todos_HostAddress}}/todos/b0b41db7-82b8-44cd-9cc9-f3a2ffb4b9c6

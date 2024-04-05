@@ -25,7 +25,9 @@ builder.Services.AddSwaggerGen(options =>
     options.UseAllOfToExtendReferenceSchemas();
 });
 
-builder.Services.AddSqlite<TodoDbContext>("Filename=.db/Todos.db");
+builder.Services.AddSqlite<AppDbContext>("Filename=.db/Todos.db");
+
+builder.Services.AddTransient<ITodoRepository, EntityFrameworkTodoRepository>();
 
 var app = builder.Build();
 
@@ -46,7 +48,7 @@ app.AddTodoEndpoints();
 
 using (var scope = app.Services.CreateScope())
 {
-    var db = scope.ServiceProvider.GetRequiredService<TodoDbContext>();
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
     await db.Database.EnsureCreatedAsync();
 }

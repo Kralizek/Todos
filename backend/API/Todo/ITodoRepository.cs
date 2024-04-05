@@ -1,10 +1,8 @@
-﻿using System.Linq.Expressions;
-
-namespace Todos.Todo;
+﻿namespace Todos.Todo;
 
 public abstract class TodoItemSpecification
 {
-    public Expression<Func<TodoItem, bool>> Expression { get; }
+    public abstract Expression<Func<TodoItem, bool>> Expression { get; }
 }
 
 public interface ITodoRepository

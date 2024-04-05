@@ -1,6 +1,9 @@
 ﻿using Microsoft.AspNetCore.Http.HttpResults;
 
 using Todos.Todo;
+using Todos.Todo.Specifications;
+
+using Priority = Todos.Todo.Priority;
 
 namespace Tests.Todo;
 
@@ -14,11 +17,23 @@ public class EndpointsTests
         [Test, AutoDataProvider]
         public async Task Should_return_all_items(ITodoRepository repository, TodoItem[] items)
         {
-            A.CallTo(() => repository.ListAsync()).Returns(items.ToAsyncEnumerable());
+            A.CallTo(() => repository.ListAsync(A<TodoItemSpecification[]>.Ignored)).Returns(items.ToAsyncEnumerable());
 
             var resultItems = await Endpoints.List(repository).ToArrayAsync();
             
             Assert.That(resultItems, Is.EquivalentTo(items));
+        }
+
+        [Test, AutoDataProvider]
+        public async Task Should_return_items_matching_priority(ITodoRepository repository, Priority priority, TodoItem[] items)
+        {
+            A.CallTo(() => repository.ListAsync(A<TodoItemSpecification[]>.That.Matches(specs => specs.Single() is PriorityTodoItemSpecification)))
+                .Returns(items.ToAsyncEnumerable());
+
+            var resultItems = await Endpoints.List(repository, priority).ToArrayAsync();
+            
+            Assert.That(resultItems, Is.EquivalentTo(items));
+
         }
     }
 

@@ -1,5 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 
+using Todos.Todo.Specifications;
+
 namespace Todos.Todo;
 
 public static class Endpoints
@@ -29,7 +31,17 @@ public static class Endpoints
         return builder;
     }
 
-    public static IAsyncEnumerable<TodoItem> List(ITodoRepository repository) => repository.ListAsync();
+    public static IAsyncEnumerable<TodoItem> List(ITodoRepository repository, Priority? priority = null)
+    {
+        var specifications = new List<TodoItemSpecification>();
+
+        if (priority.HasValue)
+        {
+            specifications.Add(new PriorityTodoItemSpecification(priority.Value));
+        }
+
+        return repository.ListAsync(specifications.ToArray());
+    }
 
     public static async Task<Results<Created<TodoItem>, BadRequest>> Create(TodoItem item, ITodoRepository repository, CancellationToken cancellationToken)
     {

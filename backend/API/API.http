@@ -1,23 +1,28 @@
 @Todos_HostAddress = http://localhost:5182
 
+### Get all items
 GET {{Todos_HostAddress}}/todos/
 Accept: application/json
 
-###
+### Get all items with Normal priority 
+GET {{Todos_HostAddress}}/todos/?priority=2
+Accept: application/json
+
+### Create a new item
 POST {{Todos_HostAddress}}/todos/
 Content-Type: application/json
 
 {"Title": "A test item", "Description": "Something to do", "Priority": 4}
 
-###
+### Get a item
 GET {{Todos_HostAddress}}/todos/b0b41db7-82b8-44cd-9cc9-f3a2ffb4b9c6
 Accept: application/json
 
-###
+### Update item
 PUT {{Todos_HostAddress}}/todos/b0b41db7-82b8-44cd-9cc9-f3a2ffb4b9c6
 Content-Type: application/json
 
 {"Title": "A test item", "Description": "Something to do really!", "Priority": 3, "Id": "b0b41db7-82b8-44cd-9cc9-f3a2ffb4b9c6"}
 
-###
+### Delete item
 DELETE {{Todos_HostAddress}}/todos/b0b41db7-82b8-44cd-9cc9-f3a2ffb4b9c6

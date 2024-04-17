@@ -1,0 +1,36 @@
+.add-todo {
+    max-width: 400px;
+    margin: 0 auto;
+    background-color: #f6f6f6;
+    padding: 20px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    border-radius: 5px;
+  }
+  
+  .add-todo h2 {
+    font-size: 20px;
+    margin-bottom: 15px;
+  }
+  
+  .add-todo label {
+    display: block;
+    margin-bottom: 5px;
+  }
+  
+  .add-todo input,
+  .add-todo textarea {
+    width: 90%;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    margin-bottom: 10px;
+  }
+  
+  .add-todo button {
+    color: white;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+  }
+
+  

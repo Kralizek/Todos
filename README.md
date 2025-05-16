@@ -40,6 +40,11 @@ The first thing we want to look at is the Aspire dashboard. You can reach it by 
 
 In the sample above, you want to click <https://localhost:17047/login?t=0d7214b0cdc7b04be2a1d7185fdcc2b3> to open the dashboard.
 
+You can then navigate to:
+
+- Client: <http://localhost:3182/>
+- Api: <http://localhost:5182>
+
 Please note that before you can launch the application, you need to restore the dependencies of the client application. You can do this by running the following command:
 
 ```bash

@@ -32,8 +32,7 @@ public class Tests
 
         var optionsBuilder = new DbContextOptionsBuilder<AppDbContext>()
             .ConfigureWarnings(w => w.Throw(RelationalEventId.MultipleCollectionIncludeWarning))
-            .UseNpgsql(WebApplicationFactory.ConnectionString)
-            .LogTo(TestContext.WriteLine, LogLevel.Information);
+            .UseNpgsql(WebApplicationFactory.ConnectionString);
 
         return optionsBuilder.Options;
     };

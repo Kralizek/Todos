@@ -2,12 +2,16 @@ using Microsoft.OpenApi.Models;
 
 using Todos;
 using Todos.Todo;
-var  MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
+
+const string myAllowSpecificOrigins = "_myAllowSpecificOrigins";
+
 var builder = WebApplication.CreateBuilder(args);
+
+builder.AddServiceDefaults();
 
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy(name: MyAllowSpecificOrigins,
+    options.AddPolicy(name: myAllowSpecificOrigins,
                       policy  =>
                       {
                           policy.WithOrigins("*").AllowAnyOrigin()
@@ -45,7 +49,7 @@ var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
 {
-    app.UseCors(MyAllowSpecificOrigins);
+    app.UseCors(myAllowSpecificOrigins);
     app.UseSwagger(o => o.RouteTemplate = "schema/{documentName}/openapi.json");
     
     app.UseSwaggerUI(o =>

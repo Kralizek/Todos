@@ -6,53 +6,45 @@ This repository is a sample application built using ASP.NET Core 8 and React.
 
 This repository requires the following software to be installed:
 
-- [.NET SDK 8.0](https://dotnet.microsoft.com/en-us/download/dotnet/8.0)
+- [.NET SDK 9.0](https://dotnet.microsoft.com/en-us/download/dotnet/9.0)
+- [Node.js](https://nodejs.org/en/download)
 
 ## Running the code
 
-The code in this repository is composed by a backend application written using ASP.NET Core 8.0 and a frontend application written using React.
+The code in this repository is composed by a backend application written using ASP.NET Core 9.0 and a frontend application written using React.
 
-### Backend
+The repository uses Aspire to start all the needed components for the application.
 
-To execute the backend, simply run the following command from a terminal in the root of the repository
-
-```bash
-$ dotnet run --project ./backend/API
-```
-
-Alternatively,
-
-If you want the application to restart automatically when the source code is changed, use
+You can launch the whole application using the following command:
 
 ```bash
-$ dotnet watch --project ./backend/API run
+$ dotnet run --project ./tools/AppHost
+
+Using launch settings from .\tools\AppHost\Properties\launchSettings.json...
+Building...
+info: Aspire.Hosting.DistributedApplication[0]
+      Aspire version: 9.2.1+b590865a294feaff82f06c4fadef62ba1fad2271
+info: Aspire.Hosting.DistributedApplication[0]
+      Distributed application starting.
+info: Aspire.Hosting.DistributedApplication[0]
+      Application host directory is: C:\Users\rg1844\Development\Labs\Todos\tools\AppHost
+info: Aspire.Hosting.DistributedApplication[0]
+      Now listening on: https://localhost:17047
+info: Aspire.Hosting.DistributedApplication[0]
+      Login to the dashboard at https://localhost:17047/login?t=0d7214b0cdc7b04be2a1d7185fdcc2b3
+info: Aspire.Hosting.DistributedApplication[0]
+      Distributed application started. Press Ctrl+C to shut down.
 ```
 
-The backend is configured to bind port 5182. Make sure the port is available.
+The first thing we want to look at is the Aspire dashboard. You can reach it by clicking the link in the application log.
 
-Once the project is running you can navigate to [http://localhost:5182] to access the Swagger interface.
+In the sample above, you want to click <https://localhost:17047/login?t=0d7214b0cdc7b04be2a1d7185fdcc2b3> to open the dashboard.
 
-The backend project comes with a `API.http` file that shows an example of each valid request.
+Please note that before you can launch the application, you need to restore the dependencies of the client application. You can do this by running the following command:
 
-### Frontend
+```bash
+$ cd ./client
+$ npm install
+```
 
-This repository requires the following software to be installed:
-
- [.Node.js](https://nodejs.org/en/download)
-
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
-
-## Available Scripts
-
-In the project directory (./client/), you can run following commands :
-
-### `npm install`
-
-### `npm start`
-
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
-
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
-
+This will install all the dependencies needed to run the client application.

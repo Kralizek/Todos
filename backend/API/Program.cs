@@ -1,3 +1,5 @@
+using System.Diagnostics.CodeAnalysis;
+
 using Microsoft.OpenApi.Models;
 
 using Npgsql;
@@ -74,4 +76,9 @@ using (var scope = app.Services.CreateScope())
     await db.Database.EnsureCreatedAsync();
 }
 
+app.MapDefaultEndpoints();
+
 app.Run();
+
+[ExcludeFromCodeCoverage(Justification = "Program")]
+public partial class Program { }

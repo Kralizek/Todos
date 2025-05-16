@@ -1,5 +1,7 @@
 using Microsoft.OpenApi.Models;
 
+using Npgsql;
+
 using Todos;
 using Todos.Todo;
 
@@ -41,7 +43,9 @@ builder.Services.AddSwaggerGen(options =>
     options.UseAllOfToExtendReferenceSchemas();
 });
 
-builder.Services.AddSqlite<AppDbContext>("Filename=.db/Todos.db");
+builder.AddNpgsqlDbContext<AppDbContext>("Database");
+
+builder.Services.AddOpenTelemetry().WithTracing(tracing => tracing.AddNpgsql());
 
 builder.Services.AddTransient<ITodoRepository, EntityFrameworkTodoRepository>();
 

@@ -18,7 +18,9 @@ var api = builder.AddProject<Projects.API>("api")
     .WaitFor(db);
 
 var web = builder.AddNpmApp("web", "../../client")
+    .WithReference(api)
     .WaitFor(api)
+    .WithEnvironment("REACT_APP_API_URL", api.GetEndpoint("http"))
     .WithHttpEndpoint(env: "PORT", port: 3182)
     .WithEnvironment("BROWSER", "none");
 

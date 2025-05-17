@@ -16,8 +16,8 @@ public class Tests
     {
         var builder = await DistributedApplicationTestingBuilder.CreateAsync<Projects.AppHost>();
 
-        // builder.WithContainersLifetime(ContainerLifetime.Session);
-        // builder.WithRandomVolumeNames();
+        builder.WithContainersLifetime(ContainerLifetime.Session);
+        builder.WithRandomVolumeNames();
 
         var application = await builder.BuildAsync();
         

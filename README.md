@@ -8,6 +8,7 @@ This repository requires the following software to be installed:
 
 - [.NET SDK 9.0](https://dotnet.microsoft.com/en-us/download/dotnet/9.0)
 - [Node.js](https://nodejs.org/en/download)
+- [Docker](https://www.docker.com/)
 
 ## Running the code
 

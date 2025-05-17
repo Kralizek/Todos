@@ -25,6 +25,7 @@
 
   <ItemGroup>
     <Using Include="NUnit.Framework" />
+    <Using Include="Microsoft.Playwright.NUnit" />
   </ItemGroup>
 
   <ItemGroup>

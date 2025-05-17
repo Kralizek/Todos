@@ -1,5 +1,7 @@
 ﻿using Aspire.Hosting;
+using Aspire.Hosting.ApplicationModel;
 using Aspire.Hosting.Testing;
+using EndToEnd.Tests.Infrastructure;
 
 namespace EndToEnd.Tests;
 
@@ -13,6 +15,9 @@ public class Tests
     private static async Task<DistributedApplication> CreateDistributedApplication()
     {
         var builder = await DistributedApplicationTestingBuilder.CreateAsync<Projects.AppHost>();
+
+        // builder.WithContainersLifetime(ContainerLifetime.Session);
+        // builder.WithRandomVolumeNames();
 
         var application = await builder.BuildAsync();
         

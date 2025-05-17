@@ -53,3 +53,29 @@ $ npm install
 ```
 
 This will install all the dependencies needed to run the client application.
+
+## Testing
+
+The solution includes three test projects:
+
+- `API.Tests` is a unit test project
+- `API.Integration.Tests` is a test project built using the `WebApplicationFactory` to test the whole ASP.NET Core application. It uses `TestContainers` and `Respawn` to give each test a pristine database.
+- `EndToEnd.Tests` is a test project built using [Playwright](https://playwright.dev/dotnet/) and [Aspire Testing Hosting](https://devblogs.microsoft.com/dotnet/getting-started-with-testing-and-dotnet-aspire/).
+
+All test projects are built using:
+
+- [NUnit 3](https://nunit.org/)
+- [FakeItEasy](https://github.com/FakeItEasy/FakeItEasy)
+- [AutoFixture](https://github.com/AutoFixture/AutoFixture)
+
+Additional testing packages are:
+
+- [Testcontainers for .NET](https://dotnet.testcontainers.org/)
+- [Respawn](https://github.com/jbogard/Respawn)
+
+Note, to run the Playwright test, you need to install the browsers. You can do so by running the following commands in a Powershell console.
+
+```bash
+$ dotnet restore
+$ ./e2e/EndToEnd.Tests/bin/Debug/net9.0/playwright.ps1 install
+```

@@ -10,6 +10,7 @@ var db = builder.AddPostgres("db", password: password, userName: username, port:
     .WithImageTag("16")
     .WithLifetime(ContainerLifetime.Persistent)
     .WithDataVolume("todo-data")
+    .WithPgAdmin()
     .AddDatabase("database", databaseName: "todo");
 
 var api = builder.AddProject<Projects.API>("api")

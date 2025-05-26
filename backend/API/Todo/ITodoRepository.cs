@@ -1,172 +1,137 @@
-﻿// Imports System.Diagnostics.CodeAnalysis for attributes like ExcludeFromCodeCoverage.
-using System.Diagnostics.CodeAnalysis;
-
-// Imports the namespace for specifications, specifically to use PriorityTodoItemSpecification.
-using Todos.Todo.Specifications;
-
-// Defines the namespace for this Endpoints class, grouping it with other Todo-related logic.
+﻿// Namespaces are used to organize code and prevent naming conflicts.
+// This namespace groups all code related to the 'Todo' feature.
 namespace Todos.Todo;
 
-// Declares a public static class named 'Endpoints'.
-// A static class cannot be instantiated and can only contain static members.
-// This class will contain extension methods and static handler methods for defining API endpoints.
-public static class Endpoints
+// An abstract class is a class that cannot be instantiated directly.
+// It's meant to be inherited by other classes.
+// This class serves as a base for creating different specifications (filters) for TodoItems.
+public abstract class TodoItemSpecification
 {
-    // The [ExcludeFromCodeCoverage] attribute tells code coverage tools to ignore this method.
-    // This is an extension method for IEndpointRouteBuilder (indicated by 'this IEndpointRouteBuilder builder').
-    // Extension methods allow you to add methods to existing types without modifying them.
-    // This method is designed to be called from Program.cs (e.g., app.AddTodoEndpoints()) to register all Todo-related API routes.
-    // It returns IEndpointRouteBuilder to allow for fluent chaining if needed.
-    [ExcludeFromCodeCoverage]
-    public static IEndpointRouteBuilder AddTodoEndpoints(this IEndpointRouteBuilder builder)
+    // This is an abstract property, meaning that any class inheriting from TodoItemSpecification
+    // must provide an implementation for it.
+    // It defines an expression that can be used to filter TodoItem objects.
+    // Expression<Func<TodoItem, bool>> is a type that represents a lambda expression
+    // which takes a TodoItem as input and returns a boolean (true if the item matches the filter, false otherwise).
+    public abstract Expression<Func<TodoItem, bool>> Expression { get; }
+}
+
+// An interface defines a contract for classes.
+// Any class implementing ITodoRepository must provide implementations for the methods defined here.
+// This interface outlines the operations that can be performed on TodoItems.
+public interface ITodoRepository
+{
+    // Task<TodoItem> indicates that this method is asynchronous and will eventually return a TodoItem.
+    // 'async' and 'await' keywords are typically used with Task to handle asynchronous operations.
+    // This method adds a new TodoItem to the repository.
+    // CancellationToken is used to signal if the operation should be cancelled.
+    Task<TodoItem> AddAsync(TodoItem item, CancellationToken cancellationToken);
+
+    // IAsyncEnumerable<TodoItem> indicates that this method returns a sequence of TodoItems that can be iterated asynchronously.
+    // This method lists TodoItems, optionally filtering them based on the provided specifications.
+    // 'params' allows passing a variable number of TodoItemSpecification arguments.
+    IAsyncEnumerable<TodoItem> ListAsync(params TodoItemSpecification[] specifications);
+
+    // This method retrieves a specific TodoItem by its ID.
+    // It returns a Task<TodoItem?>, where '?' indicates that the TodoItem can be null (if not found).
+    Task<TodoItem?> GetAsync(Guid id, CancellationToken cancellationToken);
+
+    // This method updates an existing TodoItem.
+    Task UpdateAsync(TodoItem item, CancellationToken cancellationToken);
+
+    // This method deletes a TodoItem by its ID.
+    Task DeleteAsync(Guid id, CancellationToken cancellationToken);
+}
+
+// This class provides an implementation of the ITodoRepository interface using Entity Framework Core.
+// Entity Framework Core is an Object-Relational Mapper (ORM) that simplifies database interactions.
+// The '(AppDbContext db)' is a primary constructor, injecting an AppDbContext instance.
+// AppDbContext likely represents the database session.
+public class EntityFrameworkTodoRepository(AppDbContext db) : ITodoRepository
+{
+    // Implements the AddAsync method from the ITodoRepository interface.
+    public async Task<TodoItem> AddAsync(TodoItem item, CancellationToken cancellationToken)
     {
-        // 'builder.MapGroup("/todos")' creates a route group. All endpoints defined within this group
-        // will have their routes prefixed with "/todos".
-        // '.WithTags("Todos")' adds a tag to these endpoints for Swagger documentation, grouping them in the UI.
-        // '.WithOpenApi()' enables OpenAPI (Swagger) metadata generation for these endpoints.
-        var group = builder.MapGroup("/todos")
-            .WithTags("Todos")
-            .WithOpenApi();
+        // Generates a new unique identifier (GUID) for the TodoItem.
+        item.Id = Guid.NewGuid();
 
-        // Maps an HTTP GET request to the root of the group (i.e., "/todos") to the 'List' static method below.
-        // '.WithName("ListTodos")' gives a unique name to this endpoint, useful for generating links or for other tools.
-        group.MapGet("/", List)
-            .WithName("ListTodos");
+        // Adds the new TodoItem to the DbSet<TodoItem> (likely named 'Todos') in the AppDbContext.
+        // This stages the item for insertion into the database.
+        db.Todos.Add(item);
 
-        // Maps an HTTP POST request to "/todos" to the 'Create' static method.
-        group.MapPost("/", Create)
-            .WithName("CreateTodo");
+        // Asynchronously saves all changes made in this context to the database.
+        await db.SaveChangesAsync(cancellationToken);
 
-        // Maps an HTTP GET request to "/todos/{id}" to the 'Get' static method.
-        // '{id:guid:required}' defines a route parameter named 'id'.
-        //   - 'guid' constrains the parameter to be a valid GUID.
-        //   - 'required' makes this parameter mandatory in the path.
-        group.MapGet("/{id:guid:required}", Get)
-            .WithName("GetTodo");
-
-        // Maps an HTTP PUT request to "/todos/{id}" to the 'Save' static method (intended for updates).
-        group.MapPut("/{id:guid:required}", Save)
-            .WithName("SaveTodo");
-
-        // Maps an HTTP DELETE request to "/todos/{id}" to the 'Delete' static method.
-        group.MapDelete("/{id:guid:required}", Delete)
-            .WithName("DeleteTodo");
-
-        // Returns the original builder, allowing further endpoint mapping outside this group if desired.
-        return builder;
+        // Returns the added TodoItem (which now includes the generated ID).
+        return item;
     }
 
-    // Static handler method for the GET /todos endpoint.
-    // ASP.NET Core Minimal APIs use dependency injection to provide parameters like 'ITodoRepository repository'.
-    // 'Priority? priority = null' defines an optional query parameter named 'priority'.
-    // If the request URL is /todos?priority=High, 'priority' will be Priority.High. If not provided, it's null.
-    // Returns IAsyncEnumerable<TodoItem> to stream todo items asynchronously.
-    public static IAsyncEnumerable<TodoItem> List(ITodoRepository repository, Priority? priority = null)
+    // Implements the ListAsync method from the ITodoRepository interface.
+    public IAsyncEnumerable<TodoItem> ListAsync(params TodoItemSpecification[] specifications)
     {
-        // Creates a list to hold any specifications that need to be applied.
-        var specifications = new List<TodoItemSpecification>();
+        // Starts with an IQueryable<TodoItem> representing all TodoItems in the database.
+        // IQueryable allows building up database queries dynamically.
+        IQueryable<TodoItem> items = db.Todos;
 
-        // Checks if the optional 'priority' query parameter was provided.
-        if (priority.HasValue)
+        // Iterates through each provided specification (filter).
+        foreach (var specification in specifications)
         {
-            // If a priority is provided, create a new PriorityTodoItemSpecification
-            // (using the concrete class from Specifications/PriorityTodoItemSpecification.cs)
-            // and add it to the list of specifications.
-            specifications.Add(new PriorityTodoItemSpecification(priority.Value));
+            // Applies the filter defined by the specification's Expression to the query.
+            // The 'Where' method is a LINQ (Language Integrated Query) extension method.
+            items = items.Where(specification.Expression);
         }
 
-        // Calls the ListAsync method on the injected ITodoRepository, passing any specifications.
-        // The repository will use these specifications to filter the data at the database level.
-        return repository.ListAsync(specifications.ToArray());
+        // Converts the IQueryable to an IAsyncEnumerable, allowing asynchronous iteration over the results.
+        return items.AsAsyncEnumerable();
     }
 
-    // Static handler method for the POST /todos endpoint.
-    // 'TodoItem item' parameter is automatically bound from the JSON request body.
-    // 'Results<Created<TodoItem>, BadRequest>' is a type from Minimal APIs that helps define
-    // the possible HTTP responses and their types, improving Swagger documentation and type safety.
-    public static async Task<Results<Created<TodoItem>, BadRequest>> Create(TodoItem item, ITodoRepository repository, CancellationToken cancellationToken)
+    // Implements the GetAsync method from the ITodoRepository interface.
+    public async Task<TodoItem?> GetAsync(Guid id, CancellationToken cancellationToken)
     {
-        // Basic validation: if the client sends an item with an Id, it's a bad request for a create operation,
-        // as the server should generate the Id.
-        if (item.Id != Guid.Empty)
-        {
-            // 'TypedResults.BadRequest()' returns an HTTP 400 Bad Request response.
-            return TypedResults.BadRequest();
-        }
+        // Asynchronously finds a TodoItem by its primary key (ID).
+        // The 'FindAsync' method is an efficient way to retrieve an entity by its key.
+        var item = await db.Todos.FindAsync([id], cancellationToken);
 
-        // Calls the AddAsync method on the repository to save the new todo item.
-        var newItem = await repository.AddAsync(item, cancellationToken);
-
-        // 'TypedResults.Created(location, value)' returns an HTTP 201 Created response.
-        // The first argument is the URL where the newly created resource can be found (Location header).
-        // The second argument is the created resource itself, which will be serialized in the response body.
-        return TypedResults.Created($"/todos/{newItem.Id}", newItem);
+        // Returns the found item, or null if no item with the given ID exists.
+        return item;
     }
 
-    // Static handler method for the GET /todos/{id} endpoint.
-    // 'Guid id' is bound from the route parameter.
-    public static async Task<Results<Ok<TodoItem>, NotFound>> Get(Guid id, ITodoRepository repository, CancellationToken cancellationToken)
+    // Implements the UpdateAsync method from the ITodoRepository interface.
+    public async Task UpdateAsync(TodoItem item, CancellationToken cancellationToken)
     {
-        // Calls GetAsync on the repository to retrieve the todo item by its id.
-        var item = await repository.GetAsync(id, cancellationToken);
+        // Constructs an update query for the TodoItem with the matching ID.
+        // 'Where(t => t.Id == item.Id)' filters for the specific item.
+        // 'ExecuteUpdateAsync' executes the update directly in the database without loading the entity.
+        var updated = await db.Todos.Where(t => t.Id == item.Id)
+            .ExecuteUpdateAsync(updates => updates
+                    // Specifies which properties to update and their new values.
+                    .SetProperty(t => t.IsComplete, item.IsComplete)
+                    .SetProperty(t => t.Priority, item.Priority)
+                    .SetProperty(t => t.Title, item.Title)
+                    .SetProperty(t => t.Description, item.Description),
+                cancellationToken);
 
-        // Checks if the item was found.
-        if (item is null)
+        // 'ExecuteUpdateAsync' returns the number of rows affected.
+        // If no rows were affected, it means the item was not found.
+        if (updated == 0)
         {
-            // If not found, 'TypedResults.NotFound()' returns an HTTP 404 Not Found response.
-            return TypedResults.NotFound();
+            // Throws an ArgumentException to indicate that the item to be updated was not found.
+            throw new ArgumentException("Item not found");
         }
-
-        // If found, 'TypedResults.Ok(item)' returns an HTTP 200 OK response with the item in the body.
-        return TypedResults.Ok(item);
     }
 
-    // Static handler method for the PUT /todos/{id} endpoint (for updates).
-    public static async Task<Results<Ok<TodoItem>, BadRequest, NotFound>> Save(Guid id, TodoItem item, ITodoRepository repository, CancellationToken cancellationToken)
+    // Implements the DeleteAsync method from the ITodoRepository interface.
+    public async Task DeleteAsync(Guid id, CancellationToken cancellationToken)
     {
-        // Basic validation: if the item in the request body has an Id, it must match the Id in the route.
-        // An Id should be present on the item for an update.
-        if (item.Id != Guid.Empty && item.Id != id)
+        // Constructs a delete query for the TodoItem with the matching ID.
+        // 'ExecuteDeleteAsync' executes the delete operation directly in the database.
+        var deleted = await db.Todos.Where(t => t.Id == id).ExecuteDeleteAsync(cancellationToken);
+        
+        // 'ExecuteDeleteAsync' returns the number of rows affected.
+        // If no rows were affected, it means the item was not found.
+        if (deleted == 0)
         {
-            return TypedResults.BadRequest();
+            // Throws an ArgumentException to indicate that the item to be deleted was not found.
+            throw new ArgumentException("Item not found");
         }
-        // Ensure the item being updated has the correct ID from the route parameter, if it was empty.
-        item.Id = id; 
-
-        try
-        {
-            // Calls UpdateAsync on the repository.
-            await repository.UpdateAsync(item, cancellationToken);
-        }
-        catch (ArgumentException)
-        {
-            // The repository's UpdateAsync throws ArgumentException if the item is not found.
-            // Catch this and return an HTTP 404 Not Found response.
-            return TypedResults.NotFound();
-        }
-
-        // If update is successful, return HTTP 200 OK with the updated item.
-        // Note: A common alternative for PUT is to return 204 No Content if the update is successful and no body is needed.
-        return TypedResults.Ok(item);
-    }
-
-    // Static handler method for the DELETE /todos/{id} endpoint.
-    public static async Task<Results<Ok, NotFound>> Delete(Guid id, ITodoRepository repository, CancellationToken cancellationToken)
-    {
-        try
-        {
-            // Calls DeleteAsync on the repository.
-            await repository.DeleteAsync(id, cancellationToken);
-        }
-        catch (ArgumentException)
-        {
-            // The repository's DeleteAsync throws ArgumentException if the item is not found.
-            // Catch this and return an HTTP 404 Not Found response.
-            return TypedResults.NotFound();
-        }
-
-        // If deletion is successful, 'TypedResults.Ok()' returns an HTTP 200 OK response with no body.
-        // A common alternative is to return 204 No Content.
-        return TypedResults.Ok();
     }
 }

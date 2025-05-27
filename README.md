@@ -12,6 +12,8 @@ This repository requires the following software to be installed:
 
 ## Running the code
 
+### Option 1: Using .NET Aspire (Recommended)
+
 The code in this repository is composed by a backend application written using ASP.NET Core 9.0 and a frontend application written using React.
 
 The repository uses Aspire to start all the needed components for the application.
@@ -54,6 +56,43 @@ $ npm install
 ```
 
 This will install all the dependencies needed to run the client application.
+
+### Option 2: Using Docker Compose
+
+Alternatively, you can run the entire application stack using Docker Compose, which includes:
+- PostgreSQL database
+- ASP.NET Core backend API
+- React frontend
+
+To run with Docker Compose:
+
+```bash
+$ docker-compose up --build
+```
+
+This will:
+1. Start a PostgreSQL database container with the database `todo`
+2. Build and start the backend API container
+3. Build and start the frontend container
+
+The application will be available at:
+- Frontend: <http://localhost:3182>
+- Backend API: <http://localhost:5182>
+- PostgreSQL: `localhost:5432` (database: `todo`, user: `todo`, password: `yourStrong!Passw0rd`)
+
+The backend will automatically create the database schema on startup.
+
+To stop the application:
+
+```bash
+$ docker-compose down
+```
+
+To remove all data (including the database volume):
+
+```bash
+$ docker-compose down -v
+```
 
 ## Testing
 
